@@ -1,9 +1,9 @@
 # NOVA — Project Coordination
 
-**Last updated:** 14 November 2026  
-**Project status:** Pre-development  
-**Repository:** Not yet created / confirmed  
-**Current milestone:** Windows transparent-overlay feasibility spike
+**Last updated:** 15 November 2026  
+**Project status:** Windows overlay POC built; six-point release regression and cleaned-build baseline pending; Phase 4 decisions approved  
+**Repository:** KartikTotlani/Desktop_Companion (public GitHub repository; main is the only remotely listed branch)  
+**Current milestone:** Complete final overlay regression and cleaned-build baseline; prepare Step A character production (no application-code changes yet)
 
 ---
 
@@ -39,11 +39,11 @@ This is a side business, not a commitment to become a full-time indie developer.
 | Initial platform | Windows |
 | Future platform | macOS |
 | Character placement | Freely movable desktop overlay |
-| Initial visual direction | Cute, slightly stylised original superhero |
-| Further visual direction | Premium cinematic version to explore |
+| Canonical visual direction | Cute chibi original superhero: expressive eyes, headphones, N emblem, navy suit, electric-blue details and blue cape |
+| Production approach | Consistent 3D master model rendered to 2D sprite atlases; Blender pipeline to investigate |
 | Core appeal | Personality + useful superhero-themed interactions |
 | Monetisation hypothesis | Paid base experience and optional packs |
-| Development status | Not started |
+| Development status | Windows overlay POC built; character renderer not started |
 
 ### Visual assets already created
 
@@ -185,16 +185,14 @@ Pricing is unvalidated. Do not build a marketplace or payment system before vali
 
 GitHub should become the source of truth for project code and coordination.
 
-Planned repository:
-- Private repository.
-- `coordination.md` at repository root.
-- `README.md`.
-- `.gitignore`.
-- No secrets, API keys or credentials in Git.
-
-Repository name candidate: `nova-desktop`.
-
-Repository owner and creation status must be confirmed before claiming the repository exists.
+Current repository:
+- KartikTotlani/Desktop_Companion (public as observed on 15 November 2026).
+- Default branch: main; only remotely listed branch at the time of inspection.
+- coordination.md is at the repository root.
+- User intends to consider switching the repository to private; do not change visibility without explicit instruction.
+- Keep README.md and .gitignore current; never commit secrets, API keys or credentials.
+- Latest remote commit observed during this update: 7bceec0b280da31bd9abee4efe253f679e67ef20 (Update Desktop Companion, 15 November 2026).
+- Remote GitHub state is visible; the user's local working-tree status cannot be inspected through this connector. The next local Claude/Opus session must run git status --short --branch, git log -1 --oneline and git remote -v before editing.
 
 ### Claude workflow
 
@@ -228,10 +226,10 @@ Use the professional/work laptop for personal development only if employer polic
 | Reddit concept validation | Insufficient |
 | Cinematic character direction | Pending |
 | Customer validation | Incomplete |
-| GitHub repository | Not confirmed |
-| `coordination.md` in repository | Not yet established |
-| Claude implementation | Not started |
-| Windows overlay prototype | Not started |
+| GitHub repository | Exists; public; main branch observed |
+| `coordination.md` in repository | Exists at repository root |
+| Character renderer implementation | Blocked pending release regression and baseline; Step A art preparation may proceed |
+| Windows overlay prototype | Built; six-point release regression pending |
 | First paying customer | Not yet |
 
 Do not mark an item complete without evidence.
@@ -616,50 +614,179 @@ Prerequisite for all steps: confirmed release regression; the verified POC commi
 
 All of Step B onward is blocked until the user confirms the six-point regression passed. Step A (art) is not blocked by it but is not started either. Regression results received so far: none.
 
-### 4.8 Open decisions needed from the user
+### 4.8 Approved Phase 4 decisions (15 November 2026)
 
-- **D1 click and hover mapping (conflict in the instructions):** the approved mapping was click = hop and hover = react. The Phase 4 brief says React is click-triggered and Hop a short reaction, while its hitbox section speaks of not accidentally triggering a hop while dragging. Options: A (recommended) click = hop, hover = react; B click = react, hop only after a drag drop or double-click; C click = hop then react chained. The mapping is a manifest edit.
-- **D2 hit testing:** approve Tier 1 now (drag anywhere, click and hover on the silhouette) and defer Tier 2 click-through to a later spike?
-- **D3 master source and producer:** 3D model (recommended) or hand-drawn master; who produces it, and the tools available.
-- **D4 idle pose:** standing hand-on-hip hero stance (assumed) or seated.
-- **D5 loading policy:** prefetch hop and react after the first idle frame (my proposal) or strictly on first use.
-- **D6 tooling and git:** approve a Python and Pillow pack tool (development only, no app dependency; is Python installed?) and committing and tagging the POC on a branch before the spike.
-- **D7 visibility event:** approve the small additive Rust change to emit visibility events from the tray toggle and the single-instance show.
+D1–D7 and the standing-height revision below are approved. They supersede earlier draft proposals and open questions in Sections 4.1–4.7. Do not ask the user to decide these again.
 
-### 4.9 Proposed revisions to earlier requirements (NOT applied; need approval)
+| Decision | Approved requirement |
+|---|---|
+| D1 — event mapping | Click = hop. Hover-enter = react. Manifest, state machine, hit testing and tests must all agree. Never implement click = react. |
+| D2 — hit mask | Tier 1 character-shaped hit mask approved. Click and hover are limited to the silhouette. Dragging remains available anywhere in the current window. Defer OS click-through and complex pixel-perfect/per-frame hit testing. |
+| D3 — master source | One consistent 3D master character model rendered into 2D sprite frames. Investigate Blender as the preferred production pipeline. No real-time 3D runtime in the application. First establish the design and assess practical modelling/rigging/rendering effort. AI concepting is allowed; production frames must preserve geometry and identity. |
+| D4 — idle pose | Standing hero pose, one hand on hip. Keep chibi proportions, expressive eyes, recognisable cape and headphones. |
+| D5 — loading | Make the first idle frame available and display it immediately. Only after that frame is available, preload hop and react. Load future animations only when required. |
+| D6 — tooling and Git | Python + Pillow for a development-time atlas packer only. Check actual installed versions. Before the technical spike, verify the POC is committed and pushed, tag the stable POC commit and create a dedicated renderer-spike branch from it. Never rewrite or overwrite stable POC history. |
+| D7 — visibility | A small Rust-side visibility signal is approved. Existing tray hide/show and single-instance restore must use an isolated shared visibility path so the frontend pauses while hidden and resumes when shown. Preserve tray behaviour. |
+| Standing-height revision | Maximum standing height 160 logical px; hop displacement approximately 40 logical px. Keep the current 220 × 240 logical px window initially. Validate cape clearance and clipping before proposing any window-size change. |
 
-- **R1 size envelope:** the approved 150 px standing-height limit is below the current placeholder's 160 px height (the placeholder is 120 wide). Proposal: allow up to 160 high and a 40 px hop apex, keeping at least a 24 px top margin. Keep 150 and 44 if you prefer.
-- **R2 hit area:** the approved spec did not address transparent-pixel interactivity; code reading shows the whole window is interactive today. New requirement: 4.4 Tier 1.
-- **R3 mapping:** see D1.
-- **R4 loading:** see D5.
-- No other approved decision is changed. Cosmetic: `index.html` still has the template title and favicon; left untouched.
+#### 4.9 Step A — exact 3D master and asset-production requirements (may start now; no app code)
+
+**Objective:** establish an approved, reproducible 3D Nova master in Blender (or document a justified alternative if Blender is unavailable or impractical), then deliver a turnaround and visual validation renders. Step A is art/design and tooling work only. Do not modify the Tauri/React/Rust application.
+
+**First work package — design and feasibility:**
+1. Inspect the two canonical Nova references at full resolution and extract an identity sheet: head/body ratio, face and eye design, hair silhouette, headphone shape, N emblem, suit panel/glow layout, cape shape, boots, palette and key proportions.
+2. Check Blender availability and report the exact version. If unavailable, report that and compare a no-cost installation path with credible alternatives. Do not assume it is installed.
+3. Assess modelling, topology, rigging, materials, cape/hair secondary motion, lighting, camera, render setup, animation blocking and iteration effort. Separate one-time setup from per-animation effort and provide a realistic time estimate.
+4. Recommend the lowest-cost workflow that can reliably produce consistent frames. Do not purchase assets, subscribe to services or incur costs without approval.
+5. Preserve the approved chibi identity. Surface any genuine design ambiguity rather than silently redesigning Nova.
+
+**Master-model deliverables:**
+- Editable Blender project with organised collections, named meshes/materials, camera, lights, rig and render settings.
+- One reusable character model and rig for every view and clip; no independently generated pose models.
+- Fixed identity anchors: head/eye proportions, hair silhouette, headphones, N emblem, suit-line placement, cape length/hem, gloves and boots.
+- Materials for the navy suit, electric-blue details, emblem, eyes, hair, headphones and cape. Emission/glow must be controlled and not clip at frame edges.
+- Stable orthographic camera and fixed lighting/render pipeline. Transparent RGBA background; no scene/background artwork baked into the sprite.
+- Cape and hair motion must be controllable and repeatable (rigged or simulated and baked); no random per-render variation.
+- Versioned source project and a short README recording Blender version, render settings and reproduction steps.
+
+**Required Step A visual outputs:**
+1. Turnaround: front, three-quarter, side and back views from the same model, consistent scale and neutral presentation.
+2. Expression sheet: at minimum neutral/idle, excited and focused; preserve the expressive-eye design.
+3. Palette/material sheet: named previews for suit, electric-blue details, cape, face/skin, hair and accessories.
+4. Hero idle proof render: standing, one hand on hip, at intended in-window scale.
+5. Transparent test render composited over white, mid-grey and black backgrounds to expose alpha fringes, glow halos and cape-edge problems.
+
+**Animation-ready constraints:**
+- Same rig, camera, lighting, materials, scale and root/feet anchor for every frame.
+- Neutral standing idle is the reference pose. Hop and react must return cleanly to idle.
+- No costume, emblem, facial, headphone, cape or proportion drift between clips.
+- Feet/root alignment remains stable except for intentional hop displacement.
+- Clean alpha; inspect edges on both light and dark backgrounds.
+
+**Step A acceptance:** the user explicitly approves the 3D master, turnaround, expression sheet, palette and idle proof render. Do not produce the full animation atlases until that approval.
+
+#### 4.10 Approved sprite and atlas constraints (after Step A approval)
+
+- Runtime presentation: 2D sprite atlases rendered from the approved 3D master and played by a lightweight canvas renderer. Do not ship Blender or a 3D engine inside Nova.
+- Initial logical window/canvas remains 220 × 240 px.
+- Shipped frame: 330 × 360 px (1.5× logical). Render master at 660 × 720 px (3× logical), then downsample 2:1 with a high-quality filter in premultiplied-alpha space; store straight alpha.
+- Standing character maximum: 160 logical px high and approximately 150 logical px wide including cape. Hop displacement: approximately 40 logical px upward. Preserve transparent edge padding where possible and validate cape/glow clearance against every frame edge. Do not resize the application window without approval.
+- Keep a fixed feet/root anchor across frames and clips; measure its final coordinate from the approved model and record it in the manifest. Do not blindly retain an old anchor if the approved geometry requires adjustment.
+- First production clips only: idle (12-frame loop), hop (10-frame one-shot), react (6-frame one-shot). FPS values are starting points to tune against actual motion, not user-approved fixed values.
+- Preferred format: one transparent lossless WebP atlas per clip; PNG fallback if alpha/rendering causes issues. Four columns, row-major packing, no gutter, explicit frame dimensions/count, maximum atlas dimension 4096 px.
+- Source frames: art/frames/<clip>/nova_<clip>_NNNN.png (1-based, four-digit sequence). Built atlases: app/src/character/nova/atlases/<clip>.webp. Manifest: app/src/character/nova/manifest.json.
+- Validate frame dimensions, alpha, transparent border, feet-anchor drift, standing envelope, hop displacement, cape clearance, loop seam and one-shot return-to-idle seam. Produce a contact sheet, onion-skin/jitter review and previews over white, mid-grey and black.
+- The three initial clips contain 28 frames total. At 330 × 360 RGBA this is approximately 12.7 MiB decoded before runtime overhead; measure actual process-tree memory.
+
+#### 4.11 Manifest, hit-mask and state-machine contract
+
+The manifest is the source of truth for event-to-clip mapping. Required mapping:
+
+    events: click -> hop
+    events: hoverEnter -> react
+
+The final manifest also describes schema/version, character id, logical/frame dimensions, anchor, atlas paths, columns, frame counts, timing, loop/one-shot behaviour, priorities and next clip. Add a validation test that fails if click maps to react or hover maps to hop.
+
+**Tier 1 hit mask:**
+- Generate a coarse character-shaped mask from the union of idle, hop and react silhouettes. Use alpha thresholding and modest dilation for forgiving edges; document final resolution and parameters.
+- Click/hop and hover/react fire only when the pointer is on the character mask, using logical coordinates so DPI scaling does not change hit results.
+- Preserve drag initiation anywhere within the existing 220 × 240 window; a drag cancels the pending click/hop.
+- Transparent areas outside the mask do not trigger character reactions but still block underlying window input because true click-through is deferred. Document this limitation.
+- Do not implement OS-level click-through, per-frame pixel-perfect masks or native Win32 hit testing in this phase.
+
+**State-machine contract:**
+- Idle is the default loop.
+- Click in idle/react starts hop; hop completes and returns to idle.
+- Hover-enter from idle starts react; react completes and returns to idle.
+- Click must never trigger react; hover must never trigger hop.
+- Ignore hover/click events generated during an active drag.
+- Define rapid-click/retrigger behaviour explicitly and test it. Do not carry the old 600 ms React timeout into the renderer. If choosing a one-click queue or cooldown, explain the trade-off and request approval if it changes the interaction feel.
+- No walk, sleep, wake, drag-held, celebration or tether-launch clips in the first renderer implementation.
+
+#### 4.12 Renderer implementation — what to start after the gates
+
+**Do not start this implementation yet.** This is the first application-code task after the six-point release regression and cleaned-build baseline gate. It must run on a dedicated spike branch created from a tagged stable POC commit.
+
+**Step B implementation scope (placeholder art only):**
+1. Add isolated modules under app/src/character/:
+   - types.ts: typed clip, frame, event and manifest contracts.
+   - manifest.ts: load/validate manifest and enforce click → hop, hover-enter → react.
+   - stateMachine.ts: pure transition logic, independent of React and Tauri.
+   - player.ts: canvas drawing, frame clock, timer scheduling, pause/resume and asset lifecycle; redraw only on frame changes, no permanent RAF loop.
+   - hitMask.ts: decode/query Tier 1 mask in logical coordinates.
+   - NovaSprite.tsx: thin React wrapper; no React state update per animation frame and no direct window/tray APIs.
+   - atlases/: generated placeholder atlases only, not final Nova art.
+2. Add development-only tools/pack-atlas using Python and Pillow. It packs frames, generates the hit mask, validates dimensions/alpha/anchors and emits contact sheets/background previews. Python/Pillow must not become an app runtime dependency.
+3. Integrate through the existing character stage in App.tsx/App.css, preserving current drag/click plumbing wherever possible. Do not rewrite the overlay or tray implementation.
+4. Add one isolated Rust visibility helper/event in src-tauri/src/lib.rs (proposed event nova-visibility, payload { visible: boolean }). Route existing tray hide/show and single-instance restore through it so both emit the same signal. Preserve tray menu, icon, hide/show/quit semantics and single-instance behaviour. Confirm emitter/listener APIs and any required capability against installed Tauri versions before coding.
+5. Frontend listens for visibility changes: hide pauses player and clears timers; show resumes from saved clip/frame position. Clean up listeners/timers on unmount and React StrictMode remount.
+6. Keep changes additive and local to renderer/visibility boundary. No real-time 3D runtime, network calls, AI, voice, analytics, screen capture, keyboard monitoring or unrelated feature work.
+
+**Step B acceptance:** placeholder idle loops; click plays hop then returns to idle; hover-enter plays react then returns to idle; Tier 1 mask behaves as specified; hide pauses and show resumes; drag remains reliable; tray and single-instance behaviour are unchanged; strict TypeScript/Vite/Rust release build passes. User performs manual runtime verification before Step C.
+
+**Step C:** validate transparency, alpha edges on light/dark backgrounds, 100/125/150% DPI, stable anchor, no visible jitter, hit-mask alignment, drag/click separation and hide/show mid-animation.
+
+**Step D:** replace placeholders with approved real idle/hop/react atlases from the Blender master; run packer validation and obtain user visual approval.
+
+**Step E:** repeat overlay regression and measure the whole process tree against the cleaned-build baseline. Record startup/first-frame latency, idle-visible, animated, dragging and hidden states. Optimise only against measured regressions.
+
+Later states and actions (walk, sleep/wake, drag-held, celebrations, tether launches and app launching) remain separate tasks after Steps A–E are stable.
+
+#### 4.13 Tooling and Git requirements
+
+**Local checks for the next Claude/Opus session:**
+- Run python --version (or py --version) and report exact output.
+- Run python -m pip show Pillow and a small import/version check: python -c "from PIL import Image; import PIL; print(PIL.__version__)". Report whether Pillow is installed and the exact version.
+- Check Blender availability and exact version as part of Step A feasibility.
+- Do not install packages or change the machine-wide environment without explaining the change and obtaining approval if it has a cost or broad impact.
+
+**Before Step B:**
+1. Run git status --short --branch, git log -1 --oneline and confirm the local POC working tree is clean.
+2. Ensure all current POC source and lockfile changes are committed and pushed. Do not infer local cleanliness from GitHub.
+3. Tag the exact stable POC commit (suggested annotated tag: poc-overlay-stable). If the tag already exists, inspect it; never move or overwrite it.
+4. Create feature/character-renderer-spike from that exact tagged commit.
+5. Confirm the branch starts at the tag's commit. Never force-push, reset, amend or rewrite stable POC history. Do not develop the renderer directly on main.
+
+Remote observation during this update: repository KartikTotlani/Desktop_Companion is public; main is the only listed branch; latest remote commit observed was 7bceec0b280da31bd9abee4efe253f679e67ef20. This does not reveal the user's local working-tree state.
+
+#### 4.14 Release regression gate and remaining decisions
+
+**Hard gate before Step B or any application-code modification:** the user must confirm all six release-regression checks passed and provide cleaned-build whole-process-tree baseline measurements. Until then, no Step B code, renderer branch implementation or Rust visibility changes.
+
+Six-point regression:
+1. Launch the newest release executable and confirm transparent rendering.
+2. Confirm drag and click behaviour.
+3. Confirm tray Hide, Show and Quit.
+4. Confirm no taskbar entry and record Alt+Tab behaviour.
+5. Launch a second instance and confirm it restores the existing Nova rather than creating a duplicate.
+6. Confirm Quit terminates the process.
+
+The cleaned-build baseline must include idle-visible, animated and hidden whole-process-tree measurements using the same script/method. Record durations, sample count, CPU, private memory, process count and per-process breakdown. If hidden-state measurement cannot be made reliably, report the limitation rather than inventing a value.
+
+**Remaining decisions/conflicts:** D1–D7 and standing-height are resolved. Two implementation details need evidence before coding: (a) exact Blender workflow/tool version and realistic effort estimate; (b) rapid-click behaviour during hop (ignore versus queue one). Do not silently choose either if it changes the user-visible interaction. Exact feet-anchor coordinates are measured from the approved final model, not guessed now.
+
 
 ## 11. Current milestone and exact next task
 
-**Milestone 0 — Windows transparent-overlay feasibility**
+**Current milestone — close the overlay POC gate and begin Step A character production preparation.**
 
-The immediate task is research and a minimal implementation plan—not the complete application.
+### Work allowed now (no application-code changes)
+1. Read this coordination file and inspect the current repository state.
+2. Check local Git branch, latest commit, remotes and working-tree status.
+3. Check Python and Pillow availability and exact versions; check Blender availability and exact version.
+4. Inspect the two canonical Nova references at full resolution and prepare the Step A identity/design sheet.
+5. Assess the Blender master-model workflow, production effort, timeline and no-cost tooling. Prepare the exact Step A deliverables in Section 4.9.
+6. Report conflicts, risks, tool availability and the recommended first modelling task. Do not purchase anything or install system-wide tools without approval.
+7. Keep the current POC untouched. No application-code changes.
 
-Claude must:
-1. Read this document.
-2. Inspect current official Tauri 2 documentation.
-3. Evaluate the Windows-specific overlay risks listed above.
-4. Propose the smallest proof of concept for a transparent, frameless, always-on-top, draggable window.
-5. Explain the architecture, relevant APIs/configuration and implementation sequence.
-6. Identify what must be tested manually on the target Windows machine.
-7. Identify uncertainties and recommend a fallback only if justified.
+### Blocked until explicit user confirmation
+- Step B renderer implementation.
+- Any changes to App.tsx, App.css, lib.rs, Tauri configuration, capabilities or application dependencies.
+- Creating the renderer-spike branch and starting code work before the six-point regression and cleaned-build baseline are confirmed.
 
-Do not implement the complete companion, animations, application launcher, live wallpaper or masking effects during this task.
+### First implementation to start once the gate is cleared
+Start Step B as an isolated placeholder-renderer spike on feature/character-renderer-spike, based on the tagged stable POC commit. Implement the exact module/file scope, atlas packer, Tier 1 hit mask, click → hop / hover-enter → react state machine and Rust visibility event described in Section 4.12. Use generated placeholder art only; do not integrate production Nova art until the placeholder renderer passes its build and manual acceptance checks.
 
-### Definition of done for the research task
-
-- Official documentation links are provided.
-- Windows-specific risks are explained.
-- A minimal architecture and implementation plan are proposed.
-- Unknowns and local tests are clearly identified.
-- No out-of-scope features are introduced.
-
-After reviewing the plan, the next task will be to build and test the smallest Windows overlay proof of concept.
 
 ## 12. Working principles
 

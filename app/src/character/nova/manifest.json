@@ -1,0 +1,41 @@
+{
+  "schema": 1,
+  "character": "nova",
+  "version": "0.1.0",
+  "logicalSize": { "w": 220, "h": 240 },
+  "frameSize": { "w": 330, "h": 360 },
+  "anchor": { "x": 165, "y": 336 },
+  "hoverCooldownMs": 1500,
+  "clips": {
+    "idle": {
+      "atlas": "atlases/idle.webp",
+      "columns": 4,
+      "frames": 12,
+      "fps": 10,
+      "loop": true,
+      "priority": 0,
+      "preload": true
+    },
+    "react": {
+      "atlas": "atlases/react.webp",
+      "columns": 4,
+      "frames": 6,
+      "fps": 12,
+      "loop": false,
+      "priority": 1,
+      "next": "idle",
+      "interruptibleBy": ["hop"]
+    },
+    "hop": {
+      "atlas": "atlases/hop.webp",
+      "columns": 4,
+      "frames": 10,
+      "fps": 15,
+      "loop": false,
+      "priority": 2,
+      "next": "idle",
+      "retrigger": "queue"
+    }
+  },
+  "events": { "click": "hop", "hoverEnter": "react" }
+}

@@ -614,7 +614,26 @@ Prerequisite for all steps: confirmed release regression; the verified POC commi
 
 ### 4.7 Dependencies on the release regression
 
-All of Step B onward is blocked until the user confirms the six-point regression passed. Step A (art) is not blocked by it but is not started either. Regression results received so far: none.
+The six-point release regression was reported by the user as run and verified (individual results were not itemised to the assistant, and the Alt+Tab observation was not recorded). The block on Step B is lifted by the user's instruction. Step A (art) is still not started.
+
+### 4.10 Step B progress: manifest and state machine (implemented in the working tree; NOT committed)
+
+**Decisions applied from the user:** D1 option A is final: click = hop, hover-enter = react. Both are one-shots that return to idle. The mapping is enforced twice: the manifest validator rejects any other `events` mapping, and the state machine only reads the validated mapping.
+
+**Files created (all new and untracked; no tracked file was modified):**
+- `app/src/character/types.ts`: `ClipId` (idle, hop, react), `InteractionEvent` (click, hoverEnter), `ClipDef`, `CharacterManifest`, `MachineState`, hit-mask type.
+- `app/src/character/manifest.ts`: `parseManifest(unknown)` (never throws, returns readable errors, ignores unknown clip ids and events, returns a normalised copy) and `REQUIRED_EVENT_MAP`.
+- `app/src/character/stateMachine.ts`: pure `createInitialState`, `advance`, `send`, `clipDurationMs`. No React, DOM, timers or Tauri imports; time is passed in.
+- `app/src/character/nova/manifest.json`: the three clips from section 4.2; `hoverCooldownMs: 1500` added to the manifest (not in the earlier sample) because the hover cooldown needs a configurable value.
+- `app/tests/character/manifest.test.ts` and `app/tests/character/stateMachine.test.ts`.
+
+**Behaviour implemented:** idle loops; hop and react return to idle at their exact end time; click interrupts react; hover never interrupts hop or react; a click during hop queues exactly one repeat; hover cooldown 1500 ms (a click does not start it; a backwards clock does not block it); unknown or non-string events, non-finite times, corrupted state, missing clips and unavailable clips (including a throwing availability check) are ignored safely or reset to idle. Not implemented in this task: dragging flags, hidden pause/resume, rendering, hit mask lookup, atlases. The Tauri window, drag logic, tray and single-instance code were not touched.
+
+**Tests:** the repository has NO test framework (no test script, no Vitest or Jest in `package.json`). The tests use Node's built-in runner (`node:test`) with type stripping, so no dependency was added. They live in `app/tests/` (outside `src`, which `tsconfig.json` includes) so `npm run build` does not type-check them. Run from `app/` with Node 22.6 or newer: `node --experimental-strip-types --test tests/character/stateMachine.test.ts tests/character/manifest.test.ts`. Source imports use `.ts` extensions and `import type` (allowed by the existing `allowImportingTsExtensions` setting).
+
+**Verification performed by the assistant (in its sandbox, NOT on the user's machine):** Node v22.23.4: 51 tests in 12 suites, 51 pass, 0 fail. TypeScript 6.0.3 with the repository's strict compiler options on `src/character`: no errors; the test files also type-check with Node types. NOT yet run on the user's machine: the tests, `npm run build`, `tsc` against the full `src` (including `App.tsx`).
+
+**Git state (read from `.git`, not via git commands):** branch `main` at 7bceec0, equal to `origin/main`; branch `feature/character-renderer-spike` does not exist. The assistant has no git access, so nothing was committed or pushed.
 
 ### 4.8 Open decisions needed from the user
 

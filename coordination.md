@@ -616,7 +616,7 @@ Prerequisite for all steps: confirmed release regression; the verified POC commi
 
 The six-point release regression was reported by the user as run and verified (individual results were not itemised to the assistant, and the Alt+Tab observation was not recorded). The block on Step B is lifted by the user's instruction. Step A (art) is still not started.
 
-### 4.10 Step B progress: manifest and state machine (implemented in the working tree; NOT committed)
+### 4.10 Step B progress: manifest and state machine (committed and pushed)
 
 **Decisions applied from the user:** D1 option A is final: click = hop, hover-enter = react. Both are one-shots that return to idle. The mapping is enforced twice: the manifest validator rejects any other `events` mapping, and the state machine only reads the validated mapping.
 
@@ -631,13 +631,27 @@ The six-point release regression was reported by the user as run and verified (i
 
 **Tests:** the repository has NO test framework (no test script, no Vitest or Jest in `package.json`). The tests use Node's built-in runner (`node:test`) with type stripping, so no dependency was added. They live in `app/tests/` (outside `src`, which `tsconfig.json` includes) so `npm run build` does not type-check them. Run from `app/` with Node 22.6 or newer: `node --experimental-strip-types --test tests/character/stateMachine.test.ts tests/character/manifest.test.ts`. Source imports use `.ts` extensions and `import type` (allowed by the existing `allowImportingTsExtensions` setting).
 
-**Verification performed by the assistant (in its sandbox, NOT on the user's machine):** Node v22.23.4: 51 tests in 12 suites, 51 pass, 0 fail. TypeScript 6.0.3 with the repository's strict compiler options on `src/character`: no errors; the test files also type-check with Node types. NOT yet run on the user's machine: the tests, `npm run build`, `tsc` against the full `src` (including `App.tsx`).
+**Verification:**
+- Assistant sandbox (Node v22.23.4): 51 tests pass, 0 fail; `tsc` 6.0.3 with the repository's strict options: no errors.
+- User's machine (user-reported terminal output, Node v26.13.1): `node --experimental-strip-types --test tests/character/stateMachine.test.ts tests/character/manifest.test.ts` gave 51 tests, 12 suites, 51 pass, 0 fail. `npm run build` (`tsc && vite build`) succeeded (22 modules; JS 236.15 kB, CSS 1.20 kB).
+- Not yet verified: runtime behaviour in the app (nothing in `App.tsx` uses the new code yet).
 
-**Git state (read from `.git`, not via git commands):** branch `main` at 7bceec0, equal to `origin/main`; branch `feature/character-renderer-spike` does not exist. The assistant has no git access, so nothing was committed or pushed.
+**Git (user-reported terminal output):** branch `feature/character-renderer-spike` created from `main` (7bceec0); commit `9720a03` "Add character manifest types and pure animation state machine" (7 files, 949 insertions, 1 deletion: the six new files plus `coordination.md`); pushed with upstream tracking to `origin/feature/character-renderer-spike`. Git printed LF-to-CRLF warnings, which are harmless line-ending notices. The push transferred 85 objects (5.86 MiB), far more than this commit's small text files; the cause was not checked (see the open question in the next section).
+
+### 4.11 Step B progress: pure frame selection (written; NOT yet run by the user; NOT committed)
+
+**Created (new files on branch `feature/character-renderer-spike`, uncommitted):**
+- `app/src/character/framePlayer.ts`: pure `frameIndexAt`, `frameCell`, `atlasSize`, `backingSize`, `describeFrame`. No DOM, canvas, timers, React or Tauri imports. `describeFrame(manifest, state, now)` advances the state machine and returns the clip, frame, atlas source rectangle and `wakeInMs` (time to the next visible change, minimum 1 ms; one-shots on their last frame wake at the clip end). Loops wrap, one-shots hold the last frame, per-frame `durations` are honoured, corrupted state or time falls back to idle without throwing.
+- `app/tests/character/framePlayer.test.ts`: 18 tests, including: atlas sizes equal the approved spec (idle 1320x1080, hop 1320x1080, react 1320x720); backing size 220x240 / 275x300 / 330x360 at 100% / 125% / 150% and capped at 330x360 above that; scheduling purely by `wakeInMs` visits every idle and hop frame in order with no skips or repeats.
+
+**Verification (assistant sandbox only, Node v22.23.4, TypeScript 6.0.3):** all character tests 69 pass, 0 fail (51 earlier plus 18 new); `tsc` with the repository's strict options on `src` and on `src` plus `tests`: no errors. Not yet run on the user's machine.
+
+**Still not implemented:** the canvas wrapper (drawing, `setTimeout` scheduling, image loading), hidden pause/resume wiring, hit mask lookup, placeholder atlases, `App.tsx` integration. `App.tsx` and all Tauri code remain unchanged.
 
 ### 4.8 Open decisions needed from the user
 
-- **D1 click and hover mapping (conflict in the instructions):** the approved mapping was click = hop and hover = react. The Phase 4 brief says React is click-triggered and Hop a short reaction, while its hitbox section speaks of not accidentally triggering a hop while dragging. Options: A (recommended) click = hop, hover = react; B click = react, hop only after a drag drop or double-click; C click = hop then react chained. The mapping is a manifest edit.
+- **Repository hygiene (open question, unverified):** the first push of the feature branch moved 85 objects (5.86 MiB), which is more than this commit's small text files. Possible cause: earlier history that was never pushed, such as the images in `reference/`. `reference/` contains wallpapers with Marvel and DC characters and the concept sheets. Check with `git ls-files reference` whether they are tracked, and whether the GitHub repository is public. If it is public, copyrighted wallpapers should not be in it; ignore or remove that folder (a `.gitignore` entry plus `git rm --cached`) in a separate, user-approved change.
+- **D1 click and hover mapping (RESOLVED: the user chose option A, click = hop and hover-enter = react; original conflict text follows):** the approved mapping was click = hop and hover = react. The Phase 4 brief says React is click-triggered and Hop a short reaction, while its hitbox section speaks of not accidentally triggering a hop while dragging. Options: A (recommended) click = hop, hover = react; B click = react, hop only after a drag drop or double-click; C click = hop then react chained. The mapping is a manifest edit.
 - **D2 hit testing:** approve Tier 1 now (drag anywhere, click and hover on the silhouette) and defer Tier 2 click-through to a later spike?
 - **D3 master source and producer:** 3D model (recommended) or hand-drawn master; who produces it, and the tools available.
 - **D4 idle pose:** standing hand-on-hip hero stance (assumed) or seated.

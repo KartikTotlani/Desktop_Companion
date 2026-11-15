@@ -1,0 +1,109 @@
+/* Milestone 1 placeholder: CSS-only character, transparent page, idle bob. */
+html,
+body,
+#root {
+  margin: 0;
+  padding: 0;
+  width: 100%;
+  height: 100%;
+  background: transparent;
+  overflow: hidden;
+  user-select: none;
+}
+
+.stage {
+  width: 100%;
+  height: 100%;
+  box-sizing: border-box;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: transparent;
+}
+
+.nova {
+  position: relative;
+  width: 120px;
+  height: 160px;
+  animation: idle 2.4s ease-in-out infinite;
+}
+
+.cape {
+  position: absolute;
+  left: 10px;
+  top: 62px;
+  width: 100px;
+  height: 90px;
+  background: #c62828;
+  border-radius: 10px 10px 50px 50px;
+}
+
+.body {
+  position: absolute;
+  left: 30px;
+  top: 66px;
+  width: 60px;
+  height: 80px;
+  background: #1e5bd8;
+  border-radius: 24px 24px 18px 18px;
+}
+
+.head {
+  position: absolute;
+  left: 20px;
+  top: 6px;
+  width: 80px;
+  height: 70px;
+  background: #f2c9a0;
+  border-radius: 50%;
+  border-top: 14px solid #1e5bd8;
+  box-sizing: border-box;
+}
+
+.eye {
+  position: absolute;
+  top: 26px;
+  width: 9px;
+  height: 11px;
+  background: #222;
+  border-radius: 50%;
+}
+.eye.left {
+  left: 22px;
+}
+.eye.right {
+  right: 22px;
+}
+
+/* Click reaction (POC): quick hop with a squash, then back to idle. */
+.nova.react {
+  animation: hop 0.6s ease-out 1;
+}
+
+@keyframes hop {
+  0% {
+    transform: translateY(0) scale(1, 1);
+  }
+  20% {
+    transform: translateY(0) scale(1.08, 0.9);
+  }
+  50% {
+    transform: translateY(-28px) scale(0.95, 1.08);
+  }
+  80% {
+    transform: translateY(0) scale(1.06, 0.92);
+  }
+  100% {
+    transform: translateY(0) scale(1, 1);
+  }
+}
+
+@keyframes idle {
+  0%,
+  100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-8px);
+  }
+}

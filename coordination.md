@@ -1,9 +1,9 @@
 # NOVA — Project Coordination
 
 **Last updated:** 15 November 2026  
-**Project status:** Windows overlay POC built; six-point release regression and cleaned-build baseline pending; Phase 4 decisions approved  
+**Project status:** Windows overlay POC built; six-point release regression passed (user-confirmed); Phase 4 decisions approved; Step B placeholder-renderer spike authorised subject to local Git preflight  
 **Repository:** KartikTotlani/Desktop_Companion (public GitHub repository; main is the only remotely listed branch)  
-**Current milestone:** Complete final overlay regression and cleaned-build baseline; prepare Step A character production (no application-code changes yet)
+**Current milestone:** Start Step B placeholder-renderer implementation on a protected spike branch; collect cleaned-build baseline before integration/acceptance
 
 ---
 
@@ -524,7 +524,9 @@ Remote observation during this update: repository KartikTotlani/Desktop_Companio
 
 #### 4.14 Release regression gate and remaining decisions
 
-**Hard gate before Step B or any application-code modification:** the user must confirm all six release-regression checks passed and provide cleaned-build whole-process-tree baseline measurements. Until then, no Step B code, renderer branch implementation or Rust visibility changes.
+**Release regression status: PASSED (user-confirmed in chat on 15 November 2026).** The user explicitly authorises starting Step B implementation now. The cleaned-build whole-process-tree baseline is still outstanding, but it is no longer a blocker to the initial isolated placeholder-renderer spike. It remains a required measurement checkpoint before integrating production character atlases, performance tuning or declaring the renderer complete. Do not invent baseline values or treat historical diagnostic-build measurements as the clean baseline.
+
+Before the first code edit, the local Claude session must complete the Git preflight in Section 4.13: verify the POC is clean, committed and pushed; tag the stable POC commit without moving an existing tag; create the dedicated spike branch from that exact commit. If the working tree is dirty or the POC is not pushed, stop and report the exact issue rather than risking stable work.
 
 Six-point regression:
 1. Launch the newest release executable and confirm transparent rendering.
@@ -534,31 +536,43 @@ Six-point regression:
 5. Launch a second instance and confirm it restores the existing Nova rather than creating a duplicate.
 6. Confirm Quit terminates the process.
 
-The cleaned-build baseline must include idle-visible, animated and hidden whole-process-tree measurements using the same script/method. Record durations, sample count, CPU, private memory, process count and per-process breakdown. If hidden-state measurement cannot be made reliably, report the limitation rather than inventing a value.
+The cleaned-build baseline remains required before production-art integration and renderer acceptance. It must include idle-visible, animated and hidden whole-process-tree measurements using the same script/method. Record durations, sample count, CPU, private memory, process count and per-process breakdown. Capture it as an early parallel task while the isolated placeholder spike is underway; if hidden-state measurement cannot be made reliably, report the limitation rather than inventing a value.
 
 **Remaining decisions/conflicts:** D1–D7 and standing-height are resolved. Two implementation details need evidence before coding: (a) exact Blender workflow/tool version and realistic effort estimate; (b) rapid-click behaviour during hop (ignore versus queue one). Do not silently choose either if it changes the user-visible interaction. Exact feet-anchor coordinates are measured from the approved final model, not guessed now.
 
 
 ## 11. Current milestone and exact next task
 
-**Current milestone — close the overlay POC gate and begin Step A character production preparation.**
+**Current milestone — start Step B implementation, with the six-point overlay regression already passed.**
 
-### Work allowed now (no application-code changes)
-1. Read this coordination file and inspect the current repository state.
-2. Check local Git branch, latest commit, remotes and working-tree status.
-3. Check Python and Pillow availability and exact versions; check Blender availability and exact version.
-4. Inspect the two canonical Nova references at full resolution and prepare the Step A identity/design sheet.
-5. Assess the Blender master-model workflow, production effort, timeline and no-cost tooling. Prepare the exact Step A deliverables in Section 4.9.
-6. Report conflicts, risks, tool availability and the recommended first modelling task. Do not purchase anything or install system-wide tools without approval.
-7. Keep the current POC untouched. No application-code changes.
+### Immediate sequence for Claude (Free plan; no Opus assumed)
+1. Read this file and inspect the local repository. Run git status --short --branch, git log -1 --oneline and git remote -v.
+2. Confirm the POC changes are committed and pushed. If dirty, inspect and report; do not discard, reset or overwrite user work.
+3. Inspect/create the annotated tag poc-overlay-stable only if it does not already exist. Never move or overwrite an existing tag.
+4. Create feature/character-renderer-spike from the exact tagged stable commit. Confirm branch ancestry and push the new branch. Never work directly on main.
+5. Check Python and Pillow availability and exact versions. The packer is development-only; do not add Python/Pillow to the app runtime.
+6. Start Step B with the smallest vertical slice: placeholder idle atlas → canvas draws idle → click triggers hop → hover triggers react → one-shot returns to idle. Keep implementation within Section 4.12 and do not add unapproved features.
+7. Keep the Rust visibility event isolated. Prefer implementing/testing the frontend renderer/state machine first, then add the visibility bridge as a separate small commit so tray regressions are easy to isolate.
+8. Run typecheck/build/tests after each coherent slice. Preserve a working build and commit/push each completed task.
+9. In parallel or immediately after the first working slice, capture the cleaned-build baseline (idle-visible, animated, hidden) using tools/measure-nova.ps1. This is required before production-art integration and final renderer acceptance, but does not block the initial isolated placeholder spike.
+10. Report exact files changed, commands run, results, commit SHA and next single task at the end of each session.
 
-### Blocked until explicit user confirmation
-- Step B renderer implementation.
-- Any changes to App.tsx, App.css, lib.rs, Tauri configuration, capabilities or application dependencies.
-- Creating the renderer-spike branch and starting code work before the six-point regression and cleaned-build baseline are confirmed.
+### Claude Free-plan operating constraints
+- Assume Claude Free limits and no Opus access. Do not make Opus-only features, large context windows or paid subscriptions prerequisites.
+- Work in small, independently testable tasks that fit short sessions. Read coordination.md and only the relevant source files; avoid repeatedly pasting the entire repository or long history into context.
+- Ask Claude to complete one concrete task per session, then summarise decisions, changed files, tests, blockers and the next exact task in coordination.md.
+- Keep prompts compact but preserve the hard requirements and gates. If context or usage runs low, stop at a clean checkpoint rather than attempting a broad unfinished rewrite.
+- No paid asset packs, model subscriptions or hosted services. Prefer Blender, Python and Pillow only if already available or approved for installation.
+- Do not spend time building the final 3D character before the placeholder renderer proves the runtime architecture. Step A character design/Blender feasibility can proceed later, in a separate workstream.
 
-### First implementation to start once the gate is cleared
-Start Step B as an isolated placeholder-renderer spike on feature/character-renderer-spike, based on the tagged stable POC commit. Implement the exact module/file scope, atlas packer, Tier 1 hit mask, click → hop / hover-enter → react state machine and Rust visibility event described in Section 4.12. Use generated placeholder art only; do not integrate production Nova art until the placeholder renderer passes its build and manual acceptance checks.
+### First implementation task
+Implement the isolated placeholder renderer described in Section 4.12 on feature/character-renderer-spike. Start with typed manifest and pure state machine, then canvas player and placeholder assets, then React wrapper and Tier 1 hit mask. Verify click = hop and hover-enter = react in code and tests. Keep drag plumbing intact. Add the Rust visibility signal only after the frontend slice is working and regression-test tray Hide/Show and second-instance restore. Do not integrate final Nova art yet.
+
+### Still required before production-art integration / declaring Step B complete
+- Cleaned-build process-tree baseline for idle-visible, animated and hidden states.
+- Local Python/Pillow version check and a verified atlas packer.
+- Step A Blender feasibility and approved master character before final sprite production.
+- Manual checks of transparency, hit-mask alignment, drag/click separation, hide/show pause/resume and tray/single-instance behaviour.
 
 
 ## 12. Working principles

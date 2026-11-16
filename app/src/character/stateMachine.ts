@@ -82,6 +82,19 @@ export function advance(m: CharacterManifest, state: MachineState, now: number):
   return s;
 }
 
+/**
+ * Shift all stored timestamps by `deltaMs` so a paused animation resumes on the same
+ * frame (call with the length of the pause). Non-finite or zero deltas change nothing.
+ */
+export function shiftTime(state: MachineState, deltaMs: number): MachineState {
+  if (!Number.isFinite(deltaMs) || deltaMs === 0) return state;
+  return {
+    ...state,
+    clipStartedAt: state.clipStartedAt + deltaMs,
+    lastHoverAt: state.lastHoverAt === null ? null : state.lastHoverAt + deltaMs,
+  };
+}
+
 function available(opts: SendOptions, clip: ClipId): boolean {
   if (!opts.isAvailable) return true;
   try {

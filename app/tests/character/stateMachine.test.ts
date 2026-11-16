@@ -10,6 +10,7 @@ import {
   clipDurationMs,
   createInitialState,
   send,
+  shiftTime,
 } from "../../src/character/stateMachine.ts";
 import type { CharacterManifest, MachineState } from "../../src/character/types.ts";
 
@@ -250,5 +251,30 @@ describe("purity", () => {
     assert.equal(hop.queued, false);
     assert.equal(advance(m, hop, 1e6).clip, "idle");
     assert.equal(hop.clip, "hop");
+  });
+});
+
+describe("shiftTime (pause and resume)", () => {
+  it("moves the clip start and the hover timestamp by the pause length", () => {
+    const s: MachineState = { clip: "react", clipStartedAt: 100, queued: false, lastHoverAt: 100 };
+    assert.deepEqual(shiftTime(s, 5000), { clip: "react", clipStartedAt: 5100, queued: false, lastHoverAt: 5100 });
+  });
+
+  it("keeps a null hover timestamp and does not mutate its input", () => {
+    const s = Object.freeze(createInitialState(10));
+    assert.deepEqual(shiftTime(s, 40), { clip: "idle", clipStartedAt: 50, queued: false, lastHoverAt: null });
+    assert.equal(s.clipStartedAt, 10);
+  });
+
+  it("ignores zero and non-finite deltas", () => {
+    const s = createInitialState(10);
+    for (const d of [0, NaN, Infinity, -Infinity]) assert.equal(shiftTime(s, d), s);
+  });
+
+  it("a paused hop resumes on the same frame", () => {
+    const hop = send(m, createInitialState(0), "click", 1000);
+    const resumed = shiftTime(hop, 60_000);
+    assert.equal(advance(m, resumed, 61_000 + 100).clip, "hop");
+    assert.equal(advance(m, resumed, 61_000 + HOP_MS).clip, "idle");
   });
 });

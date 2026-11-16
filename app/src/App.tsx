@@ -1,10 +1,12 @@
-import { useRef, useState } from "react";
+import { useRef } from "react";
 import { getCurrentWindow } from "@tauri-apps/api/window";
+import { NovaSprite } from "./character/NovaSprite";
+import type { NovaSpriteHandle } from "./character/NovaSprite";
 
 const DRAG_THRESHOLD_PX = 4;
 
 function App() {
-  const [reacting, setReacting] = useState(false);
+  const sprite = useRef<NovaSpriteHandle>(null);
   // Tracks a left-button press that has not yet become a drag.
   const press = useRef<{ x: number; y: number } | null>(null);
 
@@ -26,8 +28,7 @@ function App() {
   const onMouseUp = () => {
     if (!press.current) return; // drag already started
     press.current = null;
-    setReacting(true);
-    window.setTimeout(() => setReacting(false), 600);
+    sprite.current?.send("click");
   };
 
   return (
@@ -36,18 +37,9 @@ function App() {
       onMouseDown={onMouseDown}
       onMouseMove={onMouseMove}
       onMouseUp={onMouseUp}
+      onMouseEnter={() => sprite.current?.send("hoverEnter")}
     >
-      <div
-        className={`nova${reacting ? " react" : ""}`}
-        aria-label="Nova placeholder"
-      >
-        <div className="cape" />
-        <div className="body" />
-        <div className="head">
-          <div className="eye left" />
-          <div className="eye right" />
-        </div>
-      </div>
+      <NovaSprite ref={sprite} />
     </main>
   );
 }

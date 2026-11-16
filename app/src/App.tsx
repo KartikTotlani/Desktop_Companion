@@ -2,42 +2,38 @@ import { useRef } from "react";
 import { getCurrentWindow } from "@tauri-apps/api/window";
 import { NovaSprite } from "./character/NovaSprite";
 import type { NovaSpriteHandle } from "./character/NovaSprite";
-
-const DRAG_THRESHOLD_PX = 4;
+import { createPointerController } from "./pointerController";
+import type { PointerController } from "./pointerController";
 
 function App() {
   const sprite = useRef<NovaSpriteHandle>(null);
-  // Tracks a left-button press that has not yet become a drag.
-  const press = useRef<{ x: number; y: number } | null>(null);
+  const stage = useRef<HTMLElement>(null);
+  const controller = useRef<PointerController | null>(null);
 
-  const onMouseDown = (e: React.MouseEvent) => {
-    if (e.button !== 0) return;
-    press.current = { x: e.screenX, y: e.screenY };
-  };
-
-  const onMouseMove = (e: React.MouseEvent) => {
-    const start = press.current;
-    if (!start) return;
-    const moved = Math.hypot(e.screenX - start.x, e.screenY - start.y);
-    if (moved > DRAG_THRESHOLD_PX) {
-      press.current = null; // it's a drag, not a click
-      getCurrentWindow().startDragging().catch(console.error);
-    }
-  };
-
-  const onMouseUp = () => {
-    if (!press.current) return; // drag already started
-    press.current = null;
-    sprite.current?.send("click");
-  };
+  // Drag, click and hover rules live in pointerController (pure, tested). The window stays
+  // draggable from anywhere; click-to-hop and hover-to-react only count on Nova's silhouette.
+  if (!controller.current) {
+    controller.current = createPointerController({
+      hitTest: (x, y) => sprite.current?.hitTest(x, y) ?? false,
+      send: (event) => sprite.current?.send(event),
+      startDrag: () => {
+        getCurrentWindow().startDragging().catch(console.error);
+      },
+      setCursor: (cursor) => {
+        if (stage.current) stage.current.style.cursor = cursor;
+      },
+    });
+  }
+  const pointer = controller.current;
 
   return (
     <main
+      ref={stage}
       className="stage"
-      onMouseDown={onMouseDown}
-      onMouseMove={onMouseMove}
-      onMouseUp={onMouseUp}
-      onMouseEnter={() => sprite.current?.send("hoverEnter")}
+      onMouseDown={(e) => pointer.down(e)}
+      onMouseMove={(e) => pointer.move(e)}
+      onMouseUp={(e) => pointer.up(e)}
+      onMouseLeave={() => pointer.leave()}
     >
       <NovaSprite ref={sprite} />
     </main>

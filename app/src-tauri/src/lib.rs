@@ -1,8 +1,22 @@
 use tauri::{
     menu::{Menu, MenuItem},
     tray::TrayIconBuilder,
-    Manager,
+    AppHandle, Emitter, Manager,
 };
+
+/// Global event telling the frontend whether Nova's window is visible (payload: bool),
+/// so the animation can pause while hidden.
+const VISIBILITY_EVENT: &str = "nova-visibility";
+
+/// Show or hide the main window and notify the frontend. Does not take focus.
+fn set_visible(app: &AppHandle, visible: bool) {
+    if let Some(window) = app.get_webview_window("main") {
+        let result = if visible { window.show() } else { window.hide() };
+        if result.is_ok() {
+            let _ = app.emit(VISIBILITY_EVENT, visible);
+        }
+    }
+}
 
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
 pub fn run() {
@@ -15,7 +29,7 @@ pub fn run() {
         builder = builder.plugin(tauri_plugin_single_instance::init(|app, _args, _cwd| {
             if let Some(window) = app.get_webview_window("main") {
                 if !window.is_visible().unwrap_or(true) {
-                    let _ = window.show();
+                    set_visible(app, true);
                 }
             }
         }));
@@ -36,11 +50,8 @@ pub fn run() {
                 .on_menu_event(|app, event| match event.id.as_ref() {
                     "toggle" => {
                         if let Some(window) = app.get_webview_window("main") {
-                            if window.is_visible().unwrap_or(false) {
-                                let _ = window.hide();
-                            } else {
-                                let _ = window.show();
-                            }
+                            let visible = window.is_visible().unwrap_or(false);
+                            set_visible(app, !visible);
                         }
                     }
                     "quit" => app.exit(0),
